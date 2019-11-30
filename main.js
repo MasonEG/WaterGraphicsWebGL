@@ -34,26 +34,15 @@ scene.background = cubeTexture;
 var light = new THREE.AmbientLight( 0x404040 ); // soft white light
 scene.add( light );
 var pointLight = new THREE.PointLight(0xffffff, 2);
-pointLight.position.set(800, 800, 300);
+pointLight.position.set(200, 200, 300);
 scene.add(pointLight);
 //\setup
 
 //build the water
-// let geometry = new THREE.Geometry(); //doesn't work
-
-// for(let i = 0; i < 100; i++) for(let j = 0; j < 100; j++) geometry.vertices.push(new THREE.Vector3(i, 5, j)); //add vertices
-// for(let i = 2; i < 1000; i += 2) geometry.faces.push(new THREE.Face3(i - 2, i - 1, i));
-// geometry.computeFaceNormals();
-// geometry.computeVertexNormals();
-
-// let testMat = new THREE.MeshStandardMaterial({color: 0xaa0000});
-
-// scene.add(new THREE.Mesh(geometry, testMat));
-
-let planeGeometry = new THREE.PlaneGeometry(500, 500, 500, 500);
+//let planeGeometry = new THREE.PlaneGeometry(500, 500, 500, 500);
+let planeGeometry = new THREE.CubeGeometry(1000, 1000, 10, 100, 100, 2);
 planeGeometry.rotateX(1.5 * Math.PI);
-//planeGeometry.translate(0, 10, 0);
-let waterMat = new THREE.MeshPhongMaterial({color: 0x0087E6, shininess: 100, transparent: true, opacity: 0.5});
+let waterMat = new THREE.MeshPhongMaterial({color: 0x0087E6, shininess: 100, transparent: true, opacity: 0.8});
 let waterMesh = new THREE.Mesh(planeGeometry, waterMat);
 waterMesh.geometry.dynamic = true;
 waterMesh.geometry.__dirtyVertices = true;
@@ -62,7 +51,13 @@ var updateIncrement = 0.1;
 
 function animate() {
     waterMesh.geometry.vertices.forEach(vertex => {
-        vertex.y = 8 * (Math.sin(0.05 * (vertex.x + updateIncrement)) + Math.cos(0.05 * (vertex.z + updateIncrement)));
+        vertex.y = ( //calculating waves, play with here
+            2 * (Math.sin(0.05 * ((250 - vertex.x) + updateIncrement))
+            + Math.cos(0.05 * ((250 - vertex.z) + updateIncrement)))
+            + 3 * Math.cos(0.04 * (500 - vertex.x - updateIncrement))
+            + 10 * Math.sin(0.03 * (vertex.z + updateIncrement)) 
+            + 30 * Math.cos(0.01 * (vertex.x + updateIncrement))
+        );
     });
     waterMesh.geometry.verticesNeedUpdate = true;
     updateIncrement += 0.3;
