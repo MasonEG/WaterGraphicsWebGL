@@ -1,0 +1,117 @@
+<!--  Test for HeightMap.js.  Simple shader uses the world space
+y-coordinate to choose a color based on the height.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Transformations</title>
+</head>
+
+<body>
+	<canvas id="theCanvas" width="600" height="400"  tabindex="0">
+    Please use a browser that supports "canvas"
+    </canvas>
+
+<p>
+Keyboard controls:
+<li>f - increase frequency
+<li>F - decrease frequency
+<li>1 through 7 - number of octaves
+
+<li>SPACE - pause rotation
+<li>y - rotate about y axis
+<li>x - rotate about x axis
+<li>z - rotate about z axis
+<li>o - Reset to initial state
+<li>
+</ul>
+<script id="vertexShader" type="x-shader/x-vertex">
+precision mediump float;
+uniform int causticV;
+uniform mat4 transform;
+attribute vec4 a_Position;
+varying float worldSpaceHeight;
+
+uniform mat3 normalMatrix;
+uniform vec4 lightVector;
+attribute vec3 a_Normal;
+
+varying vec2 oldPos;
+varying vec2 newPos;
+
+void main()
+{
+  worldSpaceHeight = a_Position.y;
+  gl_PointSize = 2.0;
+	if( causticV == 1 ){
+		float poolDepth = 1.0;
+
+		//translate the normal vector into world coordinates
+		vec3 uN = normalize(a_Normal);
+		// vec3 N = normalMatrix * uN;
+		//translate the light vector into world coordinates
+		vec4 L = normalize( transform * lightVector);
+
+		//take the normal vector and the -Light and input to refraction function, this gives your new light vector (pointing down)
+		vec3 causticLight = normalize(refract(-L.xyz, uN, 1.33));
+
+		//find the new point based on the causticLight direction
+		float yCausticRatio = poolDepth / causticLight.y;
+		float xCaustic = a_Position.x + causticLight.z * yCausticRatio;
+		float zCaustic = a_Position.z + causticLight.z * yCausticRatio;
+
+		oldPos = vec2(a_Position.x, a_Position.z);
+		newPos = vec2(xCaustic, zCaustic);
+
+		vec4 newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
+		gl_Position = transform * newPosition;
+	} else {
+		gl_Position = transform * a_Position;
+	}
+}
+</script>
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+#extension GL_OES_standard_derivatives : enable
+precision mediump float;
+uniform float minY;
+uniform float maxY;
+uniform int caustic;
+varying float worldSpaceHeight;
+
+varying vec2 oldPos;
+varying vec2 newPos;
+
+void main()
+{
+	if( caustic == 1 ){
+
+		float oldArea = length(dFdx(oldPos)) * length(dFdy(oldPos));
+		float newArea = length(dFdx(newPos)) * length(dFdy(newPos));
+
+		float cf = oldArea / newArea * 0.2;
+		gl_FragColor = vec4(cf, cf, cf, 1.0);
+	} else {
+	  float fraction = (worldSpaceHeight - minY) / (maxY - minY);
+	  vec4 navy = vec4(0.1, 0.1, 0.4, 1.0);
+	  vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);
+	  vec4 c = fraction * blue + (1.0 - fraction) * navy;
+	  gl_FragColor = c;
+	}
+}
+</script>
+
+		<script src="../teal_book/webgl-utils.js"></script>
+		<script src="../teal_book/webgl-debug.js"></script>
+		<script src="../teal_book/cuon-utils.js"></script>
+		<script src="../teal_book/cuon-matrix.js"></script>
+    <script src="perlin_noise_classical.js"></script>
+		<script src="../three/three.js"></script>
+		<script src="../util/cs336util.js"></script>
+    <script src="HeightMap.js"></script>
+		<script src="HeightMapTest1WithNoise.js"></script>
+		<script>window.onload = main</script>
+</body>
+</html>
