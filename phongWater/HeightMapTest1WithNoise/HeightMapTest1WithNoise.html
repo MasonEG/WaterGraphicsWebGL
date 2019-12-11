@@ -50,7 +50,7 @@ void main()
 
 		//translate the normal vector into world coordinates
 		vec3 uN = normalize(a_Normal);
-		// vec3 N = normalMatrix * uN;
+		vec3 N = normalize(normalMatrix * a_Normal);
 		//translate the light vector into world coordinates
 		vec4 L = normalize( transform * lightVector);
 
@@ -102,6 +102,13 @@ void main()
 	}
 }
 </script>
+
+
+<script id="vertexShaderCaustic" type="x-shader/x-vertex">
+</script>
+<script id="fragmentShaderCaustic" type="x-shader/x-vertex">
+</script>
+
 
 		<script src="../teal_book/webgl-utils.js"></script>
 		<script src="../teal_book/webgl-debug.js"></script>

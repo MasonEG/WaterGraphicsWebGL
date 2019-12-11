@@ -81,6 +81,15 @@ function loadHeightMapData()
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferCaustics);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.vertices, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.normals, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -154,7 +163,7 @@ function handleKeyPress(event)
 		break;
 	}
 
-  heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
+  heightMap = new HeightMap(noise2D, 200, 200, -1, 1, -1, 1);
   loadHeightMapData();
 
 
@@ -243,7 +252,7 @@ function draw()
   transformLoc = gl.getUniformLocation(shader, "transform");
   gl.uniformMatrix4fv(transformLoc, false, transform.elements);
   loc = gl.getUniformLocation(shader, "normalMatrix");
-  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(transform, new THREE.Matrix4()));
+  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(model, view));
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.drawElements(gl.TRIANGLES, heightMap.numMeshIndices, gl.UNSIGNED_SHORT, 0);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -352,7 +361,8 @@ function main() {
 
   // define an animation loop
   var animate = function() {
-	draw();
+
+    draw();
 
   // noiseMaker = new ClassicalNoise();
   // heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
