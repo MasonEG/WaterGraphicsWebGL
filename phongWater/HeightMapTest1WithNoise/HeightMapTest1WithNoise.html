@@ -30,7 +30,10 @@ Keyboard controls:
 <script id="vertexShader" type="x-shader/x-vertex">
 precision mediump float;
 uniform int causticV;
-uniform mat4 transform;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+uniform int showWireframe;
 attribute vec4 a_Position;
 varying float worldSpaceHeight;
 
@@ -48,14 +51,13 @@ void main()
 	if( causticV == 1 ){
 		float poolDepth = 1.0;
 
-		//translate the normal vector into world coordinates
-		vec3 uN = normalize(a_Normal);
+		//translate the normal vector into view coordinates
 		vec3 N = normalize(normalMatrix * a_Normal);
-		//translate the light vector into world coordinates
-		vec4 L = normalize( transform * lightVector);
+		//translate the light vector into view coordinates
+		vec4 L = normalize( view * lightVector);
 
 		//take the normal vector and the -Light and input to refraction function, this gives your new light vector (pointing down)
-		vec3 causticLight = normalize(refract(-L.xyz, uN, 1.33));
+		vec3 causticLight = normalize(refract(-L.xyz, N, 1.33));
 
 		//find the new point based on the causticLight direction
 		float yCausticRatio = poolDepth / causticLight.y;
@@ -65,10 +67,15 @@ void main()
 		oldPos = vec2(a_Position.x, a_Position.z);
 		newPos = vec2(xCaustic, zCaustic);
 
-		vec4 newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
-		gl_Position = transform * newPosition;
+		vec4 newPosition;
+		if( showWireframe == 1 ){
+			newPosition = vec4(xCaustic, -poolDepth, zCaustic, 1.0);
+		} else {
+			newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
+		}
+		gl_Position = projection * view * model * newPosition;
 	} else {
-		gl_Position = transform * a_Position;
+		gl_Position = projection * view * model * a_Position;
 	}
 }
 </script>

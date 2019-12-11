@@ -43,6 +43,9 @@ var indexBufferCaustics;
 var shader;
 var shaderCaustic;
 
+//Flag used to turnon and off the wireframe
+var showWireframe = 0;
+
 // transformation matrices
 var model = new Matrix4();
 
@@ -197,11 +200,10 @@ function draw()
   gl.uniform1f(gl.getUniformLocation(shader, "maxY"), heightMap.maxY);
   gl.uniform1i(gl.getUniformLocation(shader, "caustic"), 0);
   gl.uniform1i(gl.getUniformLocation(shader, "causticV"), 0);
-
-  // set uniform in shader for projection * view * model transformation
-  var transform = new Matrix4().multiply(projection).multiply(view).multiply(model);
-  var transformLoc = gl.getUniformLocation(shader, "transform");
-  gl.uniformMatrix4fv(transformLoc, false, transform.elements);
+  gl.uniform1i(gl.getUniformLocation(shader, "showWireframe"), showWireframe);
+  gl.uniformMatrix4fv( gl.getUniformLocation(shader, "model"), false, model.elements );
+  gl.uniformMatrix4fv( gl.getUniformLocation(shader, "view"), false, view.elements );
+  gl.uniformMatrix4fv( gl.getUniformLocation(shader, "projection"), false, projection.elements);
 
   //gl.drawArrays(gl.POINTS, 0, heightMap.numVertices);
 
@@ -244,13 +246,12 @@ function draw()
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.uniform1i(gl.getUniformLocation(shader, "caustic"), 1);
   gl.uniform1i(gl.getUniformLocation(shader, "causticV"), 1);
+  gl.uniform1i(gl.getUniformLocation(shader, "showWireframe"), showWireframe);
   gl.uniform1f(gl.getUniformLocation(shader, "minY"), heightMap.minY);
   gl.uniform1f(gl.getUniformLocation(shader, "maxY"), heightMap.maxY);
   loc = gl.getUniformLocation(shader, "lightVector");
-  gl.uniform4f(loc, 0.0, 1.0, 0.0, 0.0);
-  transform = new Matrix4().multiply(projection).multiply(view).multiply(model);
-  transformLoc = gl.getUniformLocation(shader, "transform");
-  gl.uniformMatrix4fv(transformLoc, false, transform.elements);
+  gl.uniform4f(loc, 0.0, 2.0, 0.0, 0.0);
+
   loc = gl.getUniformLocation(shader, "normalMatrix");
   gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(model, view));
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
