@@ -31,6 +31,7 @@ Keyboard controls:
 precision mediump float;
 uniform int causticV;
 uniform mat4 transform;
+uniform float increment;
 attribute vec4 a_Position;
 varying float worldSpaceHeight;
 
@@ -68,7 +69,10 @@ void main()
 		vec4 newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
 		gl_Position = transform * newPosition;
 	} else {
+		vec4 new_Position = a_Position;
+		new_Position.y += 5.0 * sin(increment);
 		gl_Position = transform * a_Position;
+
 	}
 }
 </script>

@@ -7,6 +7,7 @@
 var noiseMaker = new ClassicalNoise();
 var frequency = 4;
 var octaves = 1;
+var increment = 0.0;
 var noise2D = function(x, z)
 {
   let nn = 0.0;
@@ -188,7 +189,7 @@ function draw()
   gl.uniform1f(gl.getUniformLocation(shader, "maxY"), heightMap.maxY);
   gl.uniform1i(gl.getUniformLocation(shader, "caustic"), 0);
   gl.uniform1i(gl.getUniformLocation(shader, "causticV"), 0);
-
+  gl.uniform1f(gl.getUniformLocation(shader, "increment"), increment);
   // set uniform in shader for projection * view * model transformation
   var transform = new Matrix4().multiply(projection).multiply(view).multiply(model);
   var transformLoc = gl.getUniformLocation(shader, "transform");
@@ -353,7 +354,7 @@ function main() {
   // define an animation loop
   var animate = function() {
 	draw();
-
+    increment += 0.1;
   // noiseMaker = new ClassicalNoise();
   // heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
   // loadHeightMapData();
@@ -367,16 +368,16 @@ function main() {
 	  switch(axis)
 	  {
 		case 'x':
-			model = new Matrix4().setRotate(0.5, 1, 0, 0).multiply(model);
+			model = new Matrix4().setRotate(0.1, 1, 0, 0).multiply(model);
 			axis = 'x';
 			break;
 		case 'y':
 			axis = 'y';
-			model = new Matrix4().setRotate(0.5, 0, 1, 0).multiply(model);
+			model = new Matrix4().setRotate(0.1, 0, 1, 0).multiply(model);
 			break;
 		case 'z':
 			axis = 'z';
-			model = new Matrix4().setRotate(0.5, 0, 0, 1).multiply(model);
+			model = new Matrix4().setRotate(0.1, 0, 0, 1).multiply(model);
 			break;
 		default:
 		}
