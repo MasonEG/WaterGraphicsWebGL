@@ -104,8 +104,11 @@ void main()
 		float oldArea = length(dFdx(oldPos)) * length(dFdy(oldPos));
 		float newArea = length(dFdx(newPos)) * length(dFdy(newPos));
 
-		float cf = oldArea / newArea * 0.4;
+		float cf = oldArea / newArea * 0.3;
 		gl_FragColor = vec4(cf, cf, cf, 1.0);
+
+
+
 	} else {
 	  float fraction = (worldSpaceHeight - minY) / (maxY - minY);
 	  vec4 navy = vec4(0.1, 0.1, 0.4, 1.0);
