@@ -19,7 +19,7 @@ camera.position.set(0, 10, 0);
 
 
 //load skybox
-let skyBoxUrls = [
+let urls = [
         'posx.jpg',
         'negx.jpg',
         'posy.jpg',
@@ -27,7 +27,7 @@ let skyBoxUrls = [
         'posz.jpg',
         'negz.jpg'
     ];
-let cubeTexture = new THREE.CubeTextureLoader().load(skyBoxUrls);
+let cubeTexture = new THREE.CubeTextureLoader().load(urls);
 cubeTexture.mapping = THREE.CubeRefractionMapping;
 scene.background = cubeTexture;
 
@@ -39,30 +39,30 @@ scene.add(pointLight);
 //\setup
 
 //build the water
+let causticUrls = [
+    './caustic_00.png',
+    'caustic_01.png',
+    'caustic_03.png',
+    'caustic_04.png'
+];
 
 let texLoader = new THREE.TextureLoader();
+
 //let planeGeometry = new THREE.PlaneGeometry(500, 500, 500, 500);
 let planeGeometry = new THREE.CubeGeometry(1000, 1000, 10, 100, 100, 2);
 planeGeometry.rotateX(1.5 * Math.PI);
-let waterMat = new THREE.MeshPhongMaterial({color: 0x0087E6, shininess: 100, transparent: true, opacity: 0.8});
+let waterMat = new THREE.MeshPhongMaterial({
+    color: 0x0087E6, 
+    shininess: 100, 
+    specularMap: texLoader.load(causticUrls[0]),
+});
 let waterMesh = new THREE.Mesh(planeGeometry, waterMat);
-waterMesh.geometry.dynamic = true;
-waterMesh.geometry.__dirtyVertices = true;
+// waterMesh.geometry.dynamic = true;
+// waterMesh.geometry.__dirtyVertices = true;
 scene.add(waterMesh);
-var updateIncrement = 0.4;
+// var updateIncrement = 0.4;
 
 function animate() {
-    waterMesh.geometry.vertices.forEach(vertex => {
-        vertex.y = ( //calculating waves, play with here
-            2 * (Math.sin(0.05 * ((250 - vertex.x) + updateIncrement))
-            + Math.cos(0.05 * ((250 - vertex.z) + updateIncrement)))
-            + 3 * Math.cos(0.04 * (500 - vertex.x - updateIncrement))
-            + 10 * Math.sin(0.03 * (vertex.z + updateIncrement)) 
-            + 30 * Math.cos(0.01 * (vertex.x + updateIncrement))
-        );
-    });
-    waterMesh.geometry.verticesNeedUpdate = true;
-    updateIncrement += 0.3;
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);

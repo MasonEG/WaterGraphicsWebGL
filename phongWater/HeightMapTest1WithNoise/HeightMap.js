@@ -246,6 +246,7 @@ HeightMap.prototype.generateNormals = function()
     verticesArray[3*a+2] = n[2];
     // console.log("Normal x: " + n[0] + "  y: " + n[1] + "   z: " + n[2] );
   }
+
   // TODO
   return verticesArray;
 }

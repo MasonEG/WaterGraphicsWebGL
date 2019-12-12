@@ -7,6 +7,7 @@
 var noiseMaker = new ClassicalNoise();
 var frequency = 2;
 var octaves = 1;
+var increment = 0.0;
 var noise2D = function(x, z)
 {
   let nn = 0.0;
@@ -16,14 +17,26 @@ var noise2D = function(x, z)
     //double arg[2] = {x * f, y * f};
     //nn += noise2(arg) / f;
     nn += noiseMaker.noise(x * f, z * f, 0) / ( f * 4 );
-    f *= 2;
+    f *= increment;
   }
   return nn;
+}
+
+let waterAnimation = (x, z) => {
+  return (
+     0.1 * noiseMaker.noise(x, z + increment, 0)
+    + 0.2 * noiseMaker.noise(z, x - increment, 0)
+    + 0.1 * noiseMaker.noise(x + increment, z, 0)
+    + 0.1 * noiseMaker.noise(z, x + increment, 0)
+    + 0.1 * noiseMaker.noise(x - increment, z, 0)
+    - 0.2
+  );
 }
 
 // a couple of sample functions for the height map
 var modelSize = 20;
 var hmFunction = noise2D;
+// var hmFunction = waterAnimation;
 var heightMap = new HeightMap(hmFunction, modelSize, modelSize, -1, 1, -1, 1);
 
 // A few global variables...
@@ -76,6 +89,7 @@ var projection = new Matrix4().setPerspective(30, 1.5, .1, 100);
 
 var axis = 'y';
 var paused = true;
+var animateWater = false;
 
 function loadHeightMapData()
 {
@@ -173,6 +187,9 @@ function handleKeyPress(event)
   case 'M':
 		modelSize = 20;
 		break;
+  case 'a':
+		animateWater = !animateWater;
+		break;
 	}
 
   heightMap = new HeightMap(hmFunction, modelSize, modelSize, -1, 1, -1, 1);
@@ -182,6 +199,65 @@ function handleKeyPress(event)
 // code to actually render our geometry
 function draw()
 {
+
+  vertexNormalBuffer = createAndLoadBuffer(heightMap.normals);
+
+  // buffer for vertex positions for triangles
+  vertexBuffer = gl.createBuffer();
+  if (!vertexBuffer) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.vertices, gl.STATIC_DRAW);
+
+  // request a handle to another chunk of GPU memory
+  indexBuffer = gl.createBuffer();
+  if (!indexBuffer) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+
+  // bind the buffer as the current "index" buffer, note the constant
+  // ELEMENT_ARRAY_BUFFER rather than ARRAY_BUFFER
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+  // load our index data onto the GPU (uses the currently bound buffer)
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+
+  // now that the buffer is set up, we can unbind the buffer
+  // (we still have the handle, so we can bind it again when needed)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+  //Load the Casutic mesh
+  vertexBufferCaustics = gl.createBuffer();
+  if (!vertexBufferCaustics) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferCaustics);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.vertices, gl.STATIC_DRAW);
+  indexBufferCaustics = gl.createBuffer();
+  if (!indexBufferCaustics) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
+  if( showWireframe == 1 ){
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.wireframeIndices, gl.STATIC_DRAW);
+  } else {
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+  }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+
+
+  // specify a fill color for clearing the framebuffer
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+  gl.enable(gl.DEPTH_TEST);
+
+ // console.log(increment);
   // clear the framebuffer
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 
@@ -381,29 +457,32 @@ function main() {
 
     draw();
 
-  // noiseMaker = new ClassicalNoise();
-  // heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
+    if( animateWater  ){
+      increment += 0.01;
+      heightMap = new HeightMap(hmFunction, modelSize, modelSize, -1, 1, -1, 1);
+    }
+
+
   // loadHeightMapData();
 
 	// increase the rotation by 1 degree, depending on the axis chosen
 	if (!paused)
 	{
-
   		// multiply on *left* by a new one-degree rotation about the chosen axis
 		  // this always rotates about one of the world coordinate axes
 	  switch(axis)
 	  {
 		case 'x':
-			model = new Matrix4().setRotate(0.5, 1, 0, 0).multiply(model);
+			model = new Matrix4().setRotate(0.1, 1, 0, 0).multiply(model);
 			axis = 'x';
 			break;
 		case 'y':
 			axis = 'y';
-			model = new Matrix4().setRotate(0.5, 0, 1, 0).multiply(model);
+			model = new Matrix4().setRotate(0.1, 0, 1, 0).multiply(model);
 			break;
 		case 'z':
 			axis = 'z';
-			model = new Matrix4().setRotate(0.5, 0, 0, 1).multiply(model);
+			model = new Matrix4().setRotate(0.1, 0, 0, 1).multiply(model);
 			break;
 		default:
 		}
@@ -458,6 +537,8 @@ function main() {
   };
 
   // start drawing!
+  console.log(heightMap.normals);
+
   animate();
 
 

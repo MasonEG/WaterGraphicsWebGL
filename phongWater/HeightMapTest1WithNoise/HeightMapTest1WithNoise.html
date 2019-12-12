@@ -26,6 +26,7 @@ Keyboard controls:
 <li>z - rotate about z axis
 <li>t - toggle wireframe
 <li>m, M - toggle mesh resolution
+<li>a - toggle animation
 <li>t, m
 <li>
 </ul>
@@ -49,7 +50,9 @@ varying vec2 newPos;
 
 void main()
 {
-  worldSpaceHeight = a_Position.y;
+	vec4 new_Position = a_Position;
+
+  worldSpaceHeight = new_Position.y;
   gl_PointSize = 2.0;
 	if( causticV == 1 ){
 		vec4 newPosition = a_Position;
@@ -113,6 +116,7 @@ void main()
 	  float fraction = (worldSpaceHeight - minY) / (maxY - minY);
 	  vec4 navy = vec4(0.1, 0.1, 0.4, 1.0);
 	  vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);
+	  vec4 lBlue = vec4(0.0, 0.8, 1.0, 1.0);
 	  vec4 c = fraction * blue + (1.0 - fraction) * navy;
 	  gl_FragColor = c;
 	}
