@@ -44,7 +44,12 @@ varying vec2 newPos;
 
 void main()
 {
-  worldSpaceHeight = a_Position.y;
+	vec4 new_Position = a_Position;
+//    new_Position.y -= 0.5;
+//	new_Position.z += 0.3 * sin((increment + new_Position.x) * 0.2);
+//	new_Position.x += 0.1 * cos(increment + new_Position.z); 
+
+  worldSpaceHeight = new_Position.y;
   gl_PointSize = 2.0;
 	if( causticV == 1 ){
 		float poolDepth = 1.0;
@@ -60,18 +65,16 @@ void main()
 
 		//find the new point based on the causticLight direction
 		float yCausticRatio = poolDepth / causticLight.y;
-		float xCaustic = a_Position.x + causticLight.z * yCausticRatio;
-		float zCaustic = a_Position.z + causticLight.z * yCausticRatio;
+		float xCaustic = new_Position.x + causticLight.z * yCausticRatio;
+		float zCaustic = new_Position.z + causticLight.z * yCausticRatio;
 
-		oldPos = vec2(a_Position.x, a_Position.z);
+		oldPos = vec2(new_Position.x, new_Position.z);
 		newPos = vec2(xCaustic, zCaustic);
 
-		vec4 newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
+		vec4 newPosition = vec4(new_Position.x, -poolDepth, new_Position.z, 1.0);
 		gl_Position = transform * newPosition;
 	} else {
-		vec4 new_Position = a_Position;
-		new_Position.y += 5.0 * sin(increment);
-		gl_Position = transform * a_Position;
+		gl_Position = transform * new_Position;
 
 	}
 }
@@ -101,6 +104,7 @@ void main()
 	  float fraction = (worldSpaceHeight - minY) / (maxY - minY);
 	  vec4 navy = vec4(0.1, 0.1, 0.4, 1.0);
 	  vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);
+	  vec4 lBlue = vec4(0.0, 0.8, 1.0, 1.0);
 	  vec4 c = fraction * blue + (1.0 - fraction) * navy;
 	  gl_FragColor = c;
 	}

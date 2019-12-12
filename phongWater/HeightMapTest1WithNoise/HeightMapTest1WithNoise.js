@@ -16,15 +16,26 @@ var noise2D = function(x, z)
   {
     //double arg[2] = {x * f, y * f};
     //nn += noise2(arg) / f;
-    nn += noiseMaker.noise(x * f, z * f, 0) / ( f * 4 );
-    f *= 2;
+    nn += noiseMaker.noise(x * f * cos(increment), z * f * cos(increment), 0) / ( f * 4 );
+    f *= increment;
   }
   return nn;
 }
 
+let test = (x, z) => {
+  return (
+     0.1 * noiseMaker.noise(x, z + increment, 0)
+    + 0.2 * noiseMaker.noise(z, x - increment, 0) 
+    + 0.1 * noiseMaker.noise(x + increment, z, 0)
+    + 0.1 * noiseMaker.noise(z, x + increment, 0)
+    + 0.1 * noiseMaker.noise(x - increment, z, 0)
+    - 0.2
+  );
+}
+
 
 // a couple of sample functions for the height map
-var heightMap = new HeightMap(noise2D, 200, 200, -1, 1, -1, 1);
+var heightMap = new HeightMap(test, 200, 200, -1, 1, -1, 1);
 
 // A few global variables...
 
@@ -164,6 +175,61 @@ function handleKeyPress(event)
 // code to actually render our geometry
 function draw()
 {
+
+  vertexNormalBuffer = createAndLoadBuffer(heightMap.normals);
+
+  // buffer for vertex positions for triangles
+  vertexBuffer = gl.createBuffer();
+  if (!vertexBuffer) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.vertices, gl.STATIC_DRAW);
+
+  // request a handle to another chunk of GPU memory
+  indexBuffer = gl.createBuffer();
+  if (!indexBuffer) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+
+  // bind the buffer as the current "index" buffer, note the constant
+  // ELEMENT_ARRAY_BUFFER rather than ARRAY_BUFFER
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+  // load our index data onto the GPU (uses the currently bound buffer)
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+
+  // now that the buffer is set up, we can unbind the buffer
+  // (we still have the handle, so we can bind it again when needed)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+  //Load the Casutic mesh
+  vertexBufferCaustics = gl.createBuffer();
+  if (!vertexBufferCaustics) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferCaustics);
+  gl.bufferData(gl.ARRAY_BUFFER, heightMap.vertices, gl.STATIC_DRAW);
+  indexBufferCaustics = gl.createBuffer();
+  if (!indexBufferCaustics) {
+	  console.log('Failed to create the buffer object');
+	  return;
+  }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+
+
+  // specify a fill color for clearing the framebuffer
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+  gl.enable(gl.DEPTH_TEST);
+   
+ // console.log(increment);
   // clear the framebuffer
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 
@@ -356,7 +422,9 @@ function main() {
 	draw();
     increment += 0.1;
   // noiseMaker = new ClassicalNoise();
-  // heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
+  //  heightMap = new HeightMap(noise2D, 40, 40, -1, 1, -1, 1);
+  heightMap = new HeightMap(test, 200, 200, -1, 1, -1, 1);
+
   // loadHeightMapData();
 
 	// increase the rotation by 1 degree, depending on the axis chosen
@@ -432,6 +500,8 @@ function main() {
   };
 
   // start drawing!
+  console.log(heightMap.normals);
+
   animate();
 
 
