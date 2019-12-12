@@ -16,7 +16,7 @@ var noise2D = function(x, z)
   {
     //double arg[2] = {x * f, y * f};
     //nn += noise2(arg) / f;
-    nn += noiseMaker.noise(x * f * cos(increment), z * f * cos(increment), 0) / ( f * 4 );
+    nn += noiseMaker.noise(x * f * Math.cos(increment), z * f * Math.cos(increment), 0) / ( f * 4 );
     f *= increment;
   }
   return nn;
@@ -25,7 +25,7 @@ var noise2D = function(x, z)
 let test = (x, z) => {
   return (
      0.1 * noiseMaker.noise(x, z + increment, 0)
-    + 0.2 * noiseMaker.noise(z, x - increment, 0) 
+    + 0.2 * noiseMaker.noise(z, x - increment, 0)
     + 0.1 * noiseMaker.noise(x + increment, z, 0)
     + 0.1 * noiseMaker.noise(z, x + increment, 0)
     + 0.1 * noiseMaker.noise(x - increment, z, 0)
@@ -228,7 +228,7 @@ function draw()
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   gl.enable(gl.DEPTH_TEST);
-   
+
  // console.log(increment);
   // clear the framebuffer
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
