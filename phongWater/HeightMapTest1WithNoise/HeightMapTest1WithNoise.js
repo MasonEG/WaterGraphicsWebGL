@@ -5,7 +5,7 @@
 
 // Noise function to use with height map
 var noiseMaker = new ClassicalNoise();
-var frequency = 4;
+var frequency = 2;
 var octaves = 1;
 var noise2D = function(x, z)
 {
@@ -21,9 +21,10 @@ var noise2D = function(x, z)
   return nn;
 }
 
-
 // a couple of sample functions for the height map
-var heightMap = new HeightMap(noise2D, 200, 200, -1, 1, -1, 1);
+var modelSize = 20;
+var hmFunction = noise2D;
+var heightMap = new HeightMap(hmFunction, modelSize, modelSize, -1, 1, -1, 1);
 
 // A few global variables...
 
@@ -44,7 +45,7 @@ var shader;
 var shaderCaustic;
 
 //Flag used to turnon and off the wireframe
-var showWireframe = 0;
+var showWireframe = 1;
 
 // transformation matrices
 var model = new Matrix4();
@@ -91,8 +92,11 @@ function loadHeightMapData()
   gl.bufferData(gl.ARRAY_BUFFER, heightMap.normals, gl.STATIC_DRAW);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
-
+  if( showWireframe == 1 ){
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.wireframeIndices, gl.STATIC_DRAW);
+  } else {
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+  }
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -160,16 +164,19 @@ function handleKeyPress(event)
 	case 'z':
 		axis = 'z';
 		break;
-	case 'o':
-		model.setIdentity();
-		axis = 'x';
+	case 't':
+		showWireframe *= -1;
+		break;
+  case 'm':
+		modelSize = 200;
+		break;
+  case 'M':
+		modelSize = 20;
 		break;
 	}
 
-  heightMap = new HeightMap(noise2D, 200, 200, -1, 1, -1, 1);
+  heightMap = new HeightMap(hmFunction, modelSize, modelSize, -1, 1, -1, 1);
   loadHeightMapData();
-
-
 }
 
 // code to actually render our geometry
@@ -250,12 +257,17 @@ function draw()
   gl.uniform1f(gl.getUniformLocation(shader, "minY"), heightMap.minY);
   gl.uniform1f(gl.getUniformLocation(shader, "maxY"), heightMap.maxY);
   loc = gl.getUniformLocation(shader, "lightVector");
-  gl.uniform4f(loc, 0.0, 2.0, 0.0, 0.0);
+  gl.uniform4f(loc, 0.0, 1.0, 0.0, 0.0);
 
   loc = gl.getUniformLocation(shader, "normalMatrix");
   gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(model, view));
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.drawElements(gl.TRIANGLES, heightMap.numMeshIndices, gl.UNSIGNED_SHORT, 0);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
+  if( showWireframe == 1 ){
+    gl.drawElements(gl.LINES, heightMap.numWireframeIndices, gl.UNSIGNED_SHORT, 0);
+  } else {
+    gl.drawElements(gl.TRIANGLES, heightMap.numMeshIndices, gl.UNSIGNED_SHORT, 0);
+  }
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 
@@ -350,7 +362,11 @@ function main() {
 	  return;
   }
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferCaustics);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+  if( showWireframe == 1 ){
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.wireframeIndices, gl.STATIC_DRAW);
+  } else {
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, heightMap.meshIndices, gl.STATIC_DRAW);
+  }
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 

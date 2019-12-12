@@ -24,7 +24,9 @@ Keyboard controls:
 <li>y - rotate about y axis
 <li>x - rotate about x axis
 <li>z - rotate about z axis
-<li>o - Reset to initial state
+<li>t - toggle wireframe
+<li>m, M - toggle mesh resolution
+<li>t, m
 <li>
 </ul>
 <script id="vertexShader" type="x-shader/x-vertex">
@@ -41,6 +43,7 @@ uniform mat3 normalMatrix;
 uniform vec4 lightVector;
 attribute vec3 a_Normal;
 
+
 varying vec2 oldPos;
 varying vec2 newPos;
 
@@ -49,29 +52,32 @@ void main()
   worldSpaceHeight = a_Position.y;
   gl_PointSize = 2.0;
 	if( causticV == 1 ){
+		vec4 newPosition = a_Position;
 		float poolDepth = 1.0;
 
-		//translate the normal vector into view coordinates
-		vec3 N = normalize(normalMatrix * a_Normal);
+		//Normalize normal vector
+		vec3 N = normalize(a_Normal);
 		//translate the light vector into view coordinates
-		vec4 L = normalize( view * lightVector);
+		vec4 L = normalize(lightVector);
 
 		//take the normal vector and the -Light and input to refraction function, this gives your new light vector (pointing down)
-		vec3 causticLight = normalize(refract(-L.xyz, N, 1.33));
+		vec3 causticLight = refract(-L.xyz, N, 1.33);
 
-		//find the new point based on the causticLight direction
+		//Find the new point on the bottom of the pool using the causticLight vector
 		float yCausticRatio = poolDepth / causticLight.y;
-		float xCaustic = a_Position.x + causticLight.z * yCausticRatio;
+		float xCaustic = a_Position.x + causticLight.x * yCausticRatio;
 		float zCaustic = a_Position.z + causticLight.z * yCausticRatio;
 
+		//Send the new and old position to the fragment shader
 		oldPos = vec2(a_Position.x, a_Position.z);
 		newPos = vec2(xCaustic, zCaustic);
 
-		vec4 newPosition;
 		if( showWireframe == 1 ){
 			newPosition = vec4(xCaustic, -poolDepth, zCaustic, 1.0);
+			oldPos = newPos;
 		} else {
-			newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
+			newPosition = vec4(xCaustic, -poolDepth, zCaustic, 1.0);
+			// newPosition = vec4(a_Position.x, -poolDepth, a_Position.z, 1.0);
 		}
 		gl_Position = projection * view * model * newPosition;
 	} else {
@@ -98,7 +104,7 @@ void main()
 		float oldArea = length(dFdx(oldPos)) * length(dFdy(oldPos));
 		float newArea = length(dFdx(newPos)) * length(dFdy(newPos));
 
-		float cf = oldArea / newArea * 0.2;
+		float cf = oldArea / newArea * 0.4;
 		gl_FragColor = vec4(cf, cf, cf, 1.0);
 	} else {
 	  float fraction = (worldSpaceHeight - minY) / (maxY - minY);
