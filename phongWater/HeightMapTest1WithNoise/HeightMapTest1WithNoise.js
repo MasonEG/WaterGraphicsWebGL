@@ -16,8 +16,8 @@ var noise2D = function(x, z)
   {
     //double arg[2] = {x * f, y * f};
     //nn += noise2(arg) / f;
-    nn += noiseMaker.noise(x * f, z * f, 0) / ( f * 4 );
-    f *= increment;
+    nn += noiseMaker.noise(x * f, z * f, 0) / (f * 4);
+    f *= 2;
   }
   return nn;
 }
@@ -182,13 +182,19 @@ function handleKeyPress(event)
 		showWireframe *= -1;
 		break;
   case 'm':
-		modelSize = 200;
-		break;
-  case 'M':
-		modelSize = 20;
+    if( modelSize == 20 ){
+      modelSize = 200;
+    } else {
+      modelSize = 20;
+    }
 		break;
   case 'a':
-		animateWater = !animateWater;
+    animateWater = !animateWater;
+    if( animateWater ){
+      hmFunction = waterAnimation;
+    } else {
+      hmFunction = noise2D;
+    }
 		break;
 	}
 
